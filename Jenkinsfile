@@ -1,15 +1,22 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.8.7-eclipse-temurin-17'
-            args '-v /root/.m2:/root/.m2' // кеш Maven
-        }
+    agent any
+
+    environment {
+        IMAGE_NAME = 'new-app-image-001'
     }
 
     stages {
         stage('Build') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                echo '🧱 Building Java application...'
+                sh './mvnw clean package'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo '🐳 Building Docker image...'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
     }
