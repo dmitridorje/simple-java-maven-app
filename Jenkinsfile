@@ -25,14 +25,12 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                script {
-                    // Заходим в Docker Registry, Jenkins сам подтянет credentials по id
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-                        echo "🚀 Pushing Docker image ${FULL_IMAGE} to Docker Hub..."
-                        // Пушим образ
-                        sh "docker push ${FULL_IMAGE}"
-                    }
-                }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
+                usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                          docker push ${FULL_IMAGE}
+                    '''
             }
         }
     }
