@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'dmitridorje/new-app-image-001'
-        IMAGE_TAG = "latest"
+        IMAGE_TAG = 'latest'
+        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     stages {
@@ -17,25 +18,22 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo '🐳 Building Docker image...'
-                sh 'docker build -t $IMAGE_NAME .'
+                // Собираем образ с тегом
+                sh "docker build -t ${FULL_IMAGE} ."
             }
         }
 
-        stage('Docker Login') {
-                    steps {
-                        script {
-                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-                                echo 'Logged in to Docker Hub'
-                            }
-                        }
-                    }
-                }
-
         stage('Docker Push') {
-                    steps {
-                        echo '🚀 Pushing Docker image to Docker Hub...'
-                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+            steps {
+                script {
+                    // Заходим в Docker Registry, Jenkins сам подтянет credentials по id
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
+                        echo "🚀 Pushing Docker image ${FULL_IMAGE} to Docker Hub..."
+                        // Пушим образ
+                        sh "docker push ${FULL_IMAGE}"
                     }
                 }
+            }
+        }
     }
 }
