@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'new-app-image-001'
+        IMAGE_TAG = "latest"
     }
 
     stages {
@@ -19,5 +20,22 @@ pipeline {
                 sh 'docker build -t $IMAGE_NAME .'
             }
         }
+
+        stage('Docker Login') {
+                    steps {
+                        script {
+                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
+                                echo 'Logged in to Docker Hub'
+                            }
+                        }
+                    }
+                }
+
+        stage('Docker Push') {
+                    steps {
+                        echo '🚀 Pushing Docker image to Docker Hub...'
+                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
+                }
     }
 }
